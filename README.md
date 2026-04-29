@@ -4,12 +4,6 @@
 
 ---
 
-## 🖥️ Demo
-
-![Danh sách sách](docs/screenshot-books.png)
-
----
-
 ## 🛠️ Tech Stack
 
 | Thành phần | Công nghệ |
