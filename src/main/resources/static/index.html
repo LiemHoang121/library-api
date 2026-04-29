@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookManager — Quản lý Sách</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Variables ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:        #2563eb;
+      --primary-dark:   #1d4ed8;
+      --primary-light:  #eff6ff;
+      --primary-ring:   rgb(37 99 235 / 0.15);
+      --header-bg:      #0f172a;
+      --header-border:  rgba(255 255 255 / 0.08);
+      --surface:        #ffffff;
+      --bg:             #f8fafc;
+      --border:         #e2e8f0;
+      --border-strong:  #cbd5e1;
+      --text:           #0f172a;
+      --text-2:         #475569;
+      --text-3:         #94a3b8;
+      --danger:         #ef4444;
+      --danger-dark:    #dc2626;
+      --danger-light:   #fef2f2;
+      --success:        #16a34a;
+      --success-light:  #f0fdf4;
+      --shadow-xs:  0 1px 2px rgb(0 0 0 / 0.04);
+      --shadow-sm:  0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04);
+      --shadow-md:  0 4px 8px rgb(0 0 0 / 0.08), 0 2px 4px rgb(0 0 0 / 0.04);
+      --shadow-lg:  0 12px 24px rgb(0 0 0 / 0.1), 0 4px 8px rgb(0 0 0 / 0.06);
+      --shadow-xl:  0 20px 40px rgb(0 0 0 / 0.12), 0 8px 16px rgb(0 0 0 / 0.08);
+      --radius-sm:  6px;
+      --radius:     8px;
+      --radius-lg:  12px;
+      --radius-xl:  16px;
+    }
+
+    html { font-size: 14px; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: 60px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--header-border);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 20px;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .header-logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 2px 8px rgb(29 78 216 / 0.5);
+      flex-shrink: 0;
+    }
+
+    .header-logo-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 20px;
+      background: rgba(255 255 255 / 0.12);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-nav-item {
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255 255 255 / 0.7);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .header-nav-item:hover { color: #fff; background: rgba(255 255 255 / 0.1); }
+    .header-nav-item.active { color: #fff; background: rgba(255 255 255 / 0.14); }
+
+    .header-spacer { flex: 1; }
+
+    .header-search {
+      position: relative;
+      width: 220px;
+    }
+
+    .header-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255 255 255 / 0.35);
+      pointer-events: none;
+    }
+
+    .header-search-input {
+      width: 100%;
+      height: 32px;
+      background: rgba(255 255 255 / 0.08);
+      border: 1px solid rgba(255 255 255 / 0.12);
+      border-radius: var(--radius);
+      padding: 0 12px 0 32px;
+      font-size: 13px;
+      font-family: inherit;
+      color: rgba(255 255 255 / 0.85);
+      outline: none;
+      transition: all 0.15s;
+    }
+
+    .header-search-input::placeholder { color: rgba(255 255 255 / 0.3); }
+    .header-search-input:focus {
+      background: rgba(255 255 255 / 0.13);
+      border-color: rgba(255 255 255 / 0.25);
+    }
+
+    .header-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      cursor: pointer;
+      border: 2px solid rgba(255 255 255 / 0.15);
+    }
+
+    /* ── Page Layout ──────────────────────────────────────────── */
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 36px 32px 64px;
+    }
+
+    /* ── Page Title ───────────────────────────────────────────── */
+    .page-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      gap: 16px;
+    }
+
+    .page-heading h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1.3;
+    }
+
+    .page-heading p {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-top: 3px;
+    }
+
+    /* ── Buttons ──────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 1px 3px rgb(37 99 235 / 0.25);
+    }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+      box-shadow: var(--shadow-xs);
+    }
+    .btn-secondary:hover { background: var(--bg); border-color: var(--border-strong); }
+
+    .btn-edit {
+      background: transparent;
+      color: var(--primary);
+      border-color: rgba(37 99 235 / 0.3);
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    .btn-edit:hover { background: var(--primary-light); border-color: var(--primary); }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--danger);
+      border-color: rgba(239 68 68 / 0.3);
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    .btn-delete:hover { background: var(--danger-light); border-color: var(--danger); }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ── Stats Bar ────────────────────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xs);
+      padding: 0 20px;
+      height: 52px;
+      width: fit-content;
+    }
+
+    .stats-kpi {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      padding: 0 4px;
+    }
+
+    .stats-kpi-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .stats-kpi-num.blue { color: var(--primary); }
+
+    .stats-kpi-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-3);
+    }
+
+    .stats-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 16px;
+      flex-shrink: 0;
+    }
+
+    /* ── Toolbar ──────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 380px;
+    }
+
+    .search-box-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      pointer-events: none;
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0 12px 0 34px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: all 0.15s;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .search-box input::placeholder { color: var(--text-3); }
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+
+    .toolbar-right { margin-left: auto; display: flex; gap: 8px; }
+
+    /* ── Table Card ───────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      white-space: nowrap;
+    }
+
+    th:first-child { padding-left: 20px; }
+    th:last-child  { text-align: right; padding-right: 20px; }
+
+    td {
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: var(--text);
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+
+    td:first-child { padding-left: 20px; }
+    td:last-child  { padding-right: 20px; text-align: right; }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr { transition: background 0.1s; }
+    tbody tr:hover td { background: #fafbff; }
+
+    .cell-id {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cell-title  { font-weight: 600; }
+    .cell-author { color: var(--text-2); font-size: 13px; }
+    .cell-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    .page-footer {
+      margin-top: 28px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .page-footer code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      background: var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--text-2);
+    }
+
+    /* ── States ───────────────────────────────────────────────── */
+    .state-cell {
+      padding: 56px 24px !important;
+      text-align: center !important;
+    }
+
+    .state-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+      display: block;
+      opacity: 0.45;
+    }
+
+    .state-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .state-desc {
+      font-size: 13px;
+      color: var(--text-2);
+      max-width: 320px;
+      margin: 0 auto;
+      line-height: 1.55;
+    }
+
+    .loading-dots {
+      display: inline-flex;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .loading-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0.35;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+      40%            { opacity: 1;    transform: scale(1); }
+    }
+
+    /* ── Pagination ───────────────────────────────────────────── */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+    }
+
+    .pagination-info {
+      font-size: 12px;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+
+    .pagination-pages {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .page-btn {
+      min-width: 30px;
+      height: 30px;
+      padding: 0 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-2);
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      line-height: 1;
+    }
+
+    .page-btn:hover:not(:disabled):not(.active) {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 1px 3px rgb(37 99 235 / 0.3);
+    }
+
+    .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .page-ellipsis {
+      font-size: 12px;
+      color: var(--text-3);
+      padding: 0 2px;
+    }
+
+    /* ── Modal ────────────────────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15 23 42 / 0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      width: 100%;
+      max-width: 460px;
+      transform: translateY(10px) scale(0.97);
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .overlay.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 24px 0;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-3);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.15s;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .modal-close:hover { background: var(--bg); color: var(--text); }
+
+    .modal-body { padding: 20px 24px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .form-label span { color: var(--danger); margin-left: 2px; }
+
+    .form-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: all 0.15s;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .form-input::placeholder { color: var(--text-3); }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-ring);
+    }
+
+    .form-input.invalid {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgb(239 68 68 / 0.12);
+    }
+
+    .form-err {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 4px;
+      display: none;
+      font-weight: 500;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 4px 24px 22px;
+    }
+
+    /* ── Spinner ──────────────────────────────────────────────── */
+    .spin {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255 255 255 / 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ────────────────────────────────────────────────── */
+    .toasts {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #1e293b;
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      min-width: 270px;
+      max-width: 340px;
+      pointer-events: auto;
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.2), 0 2px 6px rgb(0 0 0 / 0.1);
+      animation: toast-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .toast.hide { animation: toast-out 0.2s ease forwards; }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateX(16px) scale(0.95); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @keyframes toast-out {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(12px); }
+    }
+
+    .toast-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .toast.success .toast-dot { background: #4ade80; }
+    .toast.error   .toast-dot { background: #f87171; }
+
+    .toast-msg {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255 255 255 / 0.9);
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .toast-x {
+      background: none;
+      border: none;
+      color: rgba(255 255 255 / 0.35);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .toast-x:hover { color: rgba(255 255 255 / 0.7); }
+
+    /* ── Stat Cards (Thống kê) ────────────────────────────────── */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 28px 24px;
+      text-align: center;
+    }
+    .stat-card-num {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .stat-card-label {
+      font-size: 13px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────── -->
+<header class="header">
+  <a class="header-logo" href="#">
+    <div class="header-logo-icon">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+    </div>
+    <span class="header-logo-name">BookManager</span>
+  </a>
+
+  <div class="header-sep"></div>
+
+  <nav class="header-nav">
+    <button class="header-nav-item active" onclick="switchView('sach')">Sách</button>
+    <button class="header-nav-item" onclick="switchView('tacgia')">Tác giả</button>
+    <button class="header-nav-item" onclick="switchView('thongke')">Thống kê</button>
+  </nav>
+
+  <div class="header-spacer"></div>
+
+  <div class="header-search">
+    <svg class="header-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input class="header-search-input" type="text" placeholder="Tìm kiếm…"
+           id="header-search" oninput="applySearch(this.value)" />
+  </div>
+
+  <div class="header-avatar" title="Admin">A</div>
+</header>
+
+<!-- ── PAGE ───────────────────────────────────────────────── -->
+<main class="page">
+
+<!-- VIEW: SÁCH -->
+<div id="view-sach">
+
+  <!-- Page title -->
+  <div class="page-top">
+    <div class="page-heading">
+      <h1>Danh sách Sách</h1>
+      <p>Quản lý toàn bộ sách trong hệ thống</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('add')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Thêm sách
+    </button>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stats-kpi">
+      <span class="stats-kpi-num blue" id="stat-total">—</span>
+      <span class="stats-kpi-label">sách</span>
+    </div>
+    <div class="stats-sep"></div>
+    <div class="stats-kpi">
+      <span class="stats-kpi-num" id="stat-filtered">—</span>
+      <span class="stats-kpi-label">kết quả</span>
+    </div>
+    <div class="stats-sep"></div>
+    <div class="stats-kpi">
+      <span class="stats-kpi-label">Trang</span>
+      <span class="stats-kpi-num" id="stat-page">—</span>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-box">
+      <svg class="search-box-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="main-search"
+             placeholder="Lọc theo tên sách hoặc tác giả…"
+             oninput="syncSearch(this.value)" />
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-secondary" onclick="fetchBooks()" id="refresh-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        Làm mới
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" style="width:64px">ID</th>
+            <th scope="col">Tên sách</th>
+            <th scope="col">Tác giả</th>
+            <th scope="col" style="width:152px">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr>
+            <td colspan="4" class="state-cell">
+              <div class="loading-dots"><span></span><span></span><span></span></div>
+              <div class="state-desc">Đang tải dữ liệu…</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination-bar" id="pagination-bar">
+      <span class="pagination-info" id="pg-info"></span>
+      <div class="pagination-pages" id="pg-pages"></div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <p class="page-footer">Dữ liệu từ <code>localhost:8080</code> · Spring Boot REST API</p>
+
+</div><!-- end view-sach -->
+
+<!-- VIEW: TÁC GIẢ -->
+<div id="view-tacgia" style="display:none">
+  <div class="page-top">
+    <div class="page-heading">
+      <h1>Danh sách Tác giả</h1>
+      <p>Tổng hợp tác giả từ dữ liệu sách trong hệ thống</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:64px">#</th>
+            <th>Tên tác giả</th>
+            <th style="width:160px">Số sách</th>
+          </tr>
+        </thead>
+        <tbody id="author-tbody">
+          <tr><td colspan="3" class="state-cell">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            <div class="state-desc">Đang tải…</div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- end view-tacgia -->
+
+<!-- VIEW: THỐNG KÊ -->
+<div id="view-thongke" style="display:none">
+  <div class="page-top">
+    <div class="page-heading">
+      <h1>Thống kê</h1>
+      <p>Tổng quan dữ liệu thư viện</p>
+    </div>
+  </div>
+  <div class="stat-cards">
+    <div class="stat-card">
+      <div class="stat-card-num" id="sk-total">—</div>
+      <div class="stat-card-label">Tổng số sách</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num" id="sk-authors">—</div>
+      <div class="stat-card-label">Số tác giả</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num" id="sk-top-author" style="font-size:20px">—</div>
+      <div class="stat-card-label" id="sk-top-label">Tác giả nhiều sách nhất</div>
+    </div>
+  </div>
+</div><!-- end view-thongke -->
+
+</main>
+
+<!-- ── MODAL ───────────────────────────────────────────────── -->
+<div class="overlay" id="overlay" onclick="onOverlayClick(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Thêm sách mới</h2>
+      <button class="modal-close" onclick="closeModal()" aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="f-title">Tên sách<span>*</span></label>
+        <input class="form-input" id="f-title" type="text"
+               placeholder="Nhập tên sách…" autocomplete="off" />
+        <div class="form-err" id="err-title">Vui lòng nhập tên sách.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-author">Tác giả<span>*</span></label>
+        <input class="form-input" id="f-author" type="text"
+               placeholder="Nhập tên tác giả…" autocomplete="off" />
+        <div class="form-err" id="err-author">Vui lòng nhập tên tác giả.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" id="btn-save" onclick="handleSubmit()">
+        <span id="btn-save-inner">Lưu sách</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOASTS ──────────────────────────────────────────────── -->
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+  const API_BASE = 'http://localhost:8080';
+
+  const state = {
+    books: [],
+    filtered: [],
+    page: 1,
+    pageSize: 5,
+    editingId: null,
+  };
+
+  /* ── API ──────────────────────────────────────────────────── */
+
+  async function fetchBooks() {
+    setRefreshLoading(true);
+    showTableLoading();
+    try {
+      const res = await fetch(`${API_BASE}/books`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      state.books = await res.json();
+      applySearch(document.getElementById('main-search').value);
+    } catch {
+      showTableError();
+      toast('Lỗi: Không kết nối được với server.', 'error');
+    } finally {
+      setRefreshLoading(false);
+    }
+  }
+
+  async function apiAdd(title, author) {
+    const res = await fetch(`${API_BASE}/books`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, author }),
+    });
+    if (!res.ok) throw new Error(await parseErr(res));
+  }
+
+  async function apiUpdate(id, title, author) {
+    const res = await fetch(`${API_BASE}/books/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, author }),
+    });
+    if (!res.ok) throw new Error(await parseErr(res));
+  }
+
+  async function apiDelete(id) {
+    const res = await fetch(`${API_BASE}/books/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(await parseErr(res));
+  }
+
+  async function parseErr(res) {
+    try { return await res.text() || `HTTP ${res.status}`; }
+    catch { return `HTTP ${res.status}`; }
+  }
+
+  /* ── Search ───────────────────────────────────────────────── */
+
+  function syncSearch(val) {
+    document.getElementById('header-search').value = val;
+    applySearch(val);
+  }
+
+  function applySearch(val) {
+    document.getElementById('main-search').value = val;
+    const q = val.trim().toLowerCase();
+    state.filtered = q
+      ? state.books.filter(b =>
+          b.title.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q))
+      : [...state.books];
+    state.page = 1;
+    renderTable();
+    updateStats();
+  }
+
+  /* ── Render ───────────────────────────────────────────────── */
+
+  function renderTable() {
+    const tbody = document.getElementById('tbody');
+    const { filtered, page, pageSize } = state;
+
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="4" class="state-cell">
+        <span class="state-icon">📭</span>
+        <div class="state-title">Không tìm thấy sách nào</div>
+        <div class="state-desc">Thử thay đổi từ khóa tìm kiếm hoặc thêm sách mới.</div>
+      </td></tr>`;
+      renderPagination(0);
+      return;
+    }
+
+    const start = (page - 1) * pageSize;
+    const items = filtered.slice(start, start + pageSize);
+
+    tbody.innerHTML = items.map(b => `
+      <tr>
+        <td class="cell-id">${b.id}</td>
+        <td class="cell-title">${esc(b.title)}</td>
+        <td class="cell-author">${esc(b.author)}</td>
+        <td>
+          <div class="cell-actions">
+            <button class="btn btn-edit"
+              onclick="openModal('edit',${b.id})"
+              aria-label="Sửa ${esc(b.title)}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Sửa
+            </button>
+            <button class="btn btn-delete"
+              onclick="confirmDelete(${b.id},'${escJs(b.title)}')"
+              aria-label="Xóa ${esc(b.title)}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+              </svg>
+              Xóa
+            </button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    renderPagination(filtered.length);
+  }
+
+  function renderPagination(total) {
+    const { page, pageSize } = state;
+    const totalPages = Math.ceil(total / pageSize);
+    const from = total ? (page - 1) * pageSize + 1 : 0;
+    const to   = Math.min(page * pageSize, total);
+
+    document.getElementById('pg-info').textContent =
+      total ? `Hiển thị ${from}–${to} trong ${total} sách` : 'Không có kết quả';
+
+    const container = document.getElementById('pg-pages');
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+    const chevL = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
+    const chevR = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+
+    let html = `<button class="page-btn" onclick="goPage(${page-1})"
+      ${page===1?'disabled':''} aria-label="Trang trước">${chevL}</button>`;
+
+    for (const p of pageRange(page, totalPages)) {
+      if (p === '…') {
+        html += `<span class="page-ellipsis">…</span>`;
+      } else {
+        html += `<button class="page-btn${p===page?' active':''}"
+          onclick="goPage(${p})"${p===page?' aria-current="page"':''}>${p}</button>`;
+      }
+    }
+
+    html += `<button class="page-btn" onclick="goPage(${page+1})"
+      ${page===totalPages?'disabled':''} aria-label="Trang sau">${chevR}</button>`;
+
+    container.innerHTML = html;
+  }
+
+  function pageRange(cur, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (cur <= 4)            return [1, 2, 3, 4, 5, '…', total];
+    if (cur >= total - 3)    return [1, '…', total-4, total-3, total-2, total-1, total];
+    return [1, '…', cur-1, cur, cur+1, '…', total];
+  }
+
+  function goPage(p) {
+    const max = Math.ceil(state.filtered.length / state.pageSize);
+    if (p < 1 || p > max) return;
+    state.page = p;
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateStats() {
+    document.getElementById('stat-total').textContent    = state.books.length;
+    document.getElementById('stat-filtered').textContent = state.filtered.length;
+    const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+    document.getElementById('stat-page').textContent = `${state.page} / ${totalPages}`;
+  }
+
+  function showTableLoading() {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="4" class="state-cell">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <div class="state-desc">Đang tải dữ liệu…</div>
+    </td></tr>`;
+    document.getElementById('pg-info').textContent = '';
+    document.getElementById('pg-pages').innerHTML = '';
+  }
+
+  function showTableError() {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="4" class="state-cell">
+      <span class="state-icon">⚠️</span>
+      <div class="state-title">Không thể tải dữ liệu</div>
+      <div class="state-desc">Kiểm tra kết nối với backend tại
+        <strong>localhost:8080</strong>. CORS phải được bật trên server.</div>
+    </td></tr>`;
+  }
+
+  function setRefreshLoading(on) {
+    document.getElementById('refresh-btn').disabled = on;
+  }
+
+  /* ── Modal ────────────────────────────────────────────────── */
+
+  function openModal(mode, bookId = null) {
+    clearErrors();
+    state.editingId = mode === 'edit' ? bookId : null;
+
+    if (mode === 'edit') {
+      const book = state.books.find(b => b.id === bookId);
+      if (!book) return;
+      document.getElementById('modal-title').textContent    = 'Chỉnh sửa sách';
+      document.getElementById('btn-save-inner').textContent = 'Lưu thay đổi';
+      document.getElementById('f-title').value  = book.title;
+      document.getElementById('f-author').value = book.author;
+    } else {
+      document.getElementById('modal-title').textContent    = 'Thêm sách mới';
+      document.getElementById('btn-save-inner').textContent = 'Lưu sách';
+      document.getElementById('f-title').value  = '';
+      document.getElementById('f-author').value = '';
+    }
+
+    document.getElementById('overlay').classList.add('open');
+    setTimeout(() => document.getElementById('f-title').focus(), 80);
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('open');
+    state.editingId = null;
+    clearErrors();
+  }
+
+  function onOverlayClick(e) {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  }
+
+  function clearErrors() {
+    ['title', 'author'].forEach(f => {
+      document.getElementById(`f-${f}`).classList.remove('invalid');
+      document.getElementById(`err-${f}`).style.display = 'none';
+    });
+  }
+
+  async function handleSubmit() {
+    const title  = document.getElementById('f-title').value.trim();
+    const author = document.getElementById('f-author').value.trim();
+    clearErrors();
+
+    let valid = true;
+    if (!title)  {
+      document.getElementById('f-title').classList.add('invalid');
+      document.getElementById('err-title').style.display = 'block';
+      valid = false;
+    }
+    if (!author) {
+      document.getElementById('f-author').classList.add('invalid');
+      document.getElementById('err-author').style.display = 'block';
+      valid = false;
+    }
+    if (!valid) return;
+
+    setSaveLoading(true);
+    try {
+      if (state.editingId !== null) {
+        await apiUpdate(state.editingId, title, author);
+        toast('Cập nhật sách thành công!', 'success');
+      } else {
+        await apiAdd(title, author);
+        toast('Thêm sách thành công!', 'success');
+      }
+      closeModal();
+      await fetchBooks();
+    } catch (e) {
+      toast(`Lỗi: ${e.message}`, 'error');
+    } finally {
+      setSaveLoading(false);
+    }
+  }
+
+  function setSaveLoading(on) {
+    const btn = document.getElementById('btn-save');
+    btn.disabled = on;
+    document.getElementById('btn-save-inner').innerHTML = on
+      ? `<span class="spin"></span> Đang lưu…`
+      : (state.editingId !== null ? 'Lưu thay đổi' : 'Lưu sách');
+  }
+
+  /* ── Delete ───────────────────────────────────────────────── */
+
+  async function confirmDelete(id, title) {
+    if (!confirm(`Bạn có chắc muốn xóa "${title}" không?`)) return;
+    try {
+      await apiDelete(id);
+      toast('Xóa sách thành công!', 'success');
+      await fetchBooks();
+    } catch (e) {
+      toast(`Lỗi: ${e.message}`, 'error');
+    }
+  }
+
+  /* ── Toast ────────────────────────────────────────────────── */
+
+  function toast(msg, type = 'success') {
+    const container = document.getElementById('toasts');
+    while (container.children.length >= 3) container.removeChild(container.firstChild);
+
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.setAttribute('role', 'alert');
+    el.innerHTML = `
+      <div class="toast-dot"></div>
+      <span class="toast-msg">${esc(msg)}</span>
+      <button class="toast-x" onclick="dismissToast(this.parentElement)"
+              aria-label="Đóng">✕</button>`;
+
+    container.appendChild(el);
+    setTimeout(() => dismissToast(el), 3200);
+  }
+
+  function dismissToast(el) {
+    if (!el || !el.parentElement) return;
+    el.classList.add('hide');
+    setTimeout(() => el.remove(), 220);
+  }
+
+  /* ── Helpers ──────────────────────────────────────────────── */
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function escJs(s) {
+    return String(s)
+      .replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+  }
+
+  /* ── Keyboard ─────────────────────────────────────────────── */
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Enter' &&
+        document.getElementById('overlay').classList.contains('open')) {
+      handleSubmit();
+    }
+  });
+
+  /* ── Demo Mode (URL param ?demo=1) ───────────────────────── */
+
+  const DEMO_BOOKS = [
+    { id: 1,  title: 'Đắc Nhân Tâm',              author: 'Dale Carnegie'        },
+    { id: 2,  title: 'Nhà Giả Kim',                author: 'Paulo Coelho'         },
+    { id: 3,  title: 'Sapiens: Lược Sử Loài Người',author: 'Yuval Noah Harari'    },
+    { id: 4,  title: 'Tư Duy Nhanh Và Chậm',       author: 'Daniel Kahneman'     },
+    { id: 5,  title: 'Tiếng Gọi Nơi Hoang Dã',     author: 'Jack London'          },
+    { id: 6,  title: 'Dune',                        author: 'Frank Herbert'        },
+    { id: 7,  title: 'Nghệ Thuật Chiến Tranh',      author: 'Tôn Tử'              },
+    { id: 8,  title: '1984',                        author: 'George Orwell'        },
+    { id: 9,  title: 'Ông Già Và Biển Cả',          author: 'Ernest Hemingway'    },
+    { id: 10, title: 'Hoàng Tử Bé',                 author: 'Antoine de Saint-Exupéry' },
+    { id: 11, title: 'Bắt Trẻ Đồng Xanh',           author: 'J.D. Salinger'       },
+    { id: 12, title: 'Tôi Là Bêtô',                 author: 'Nguyễn Nhật Ánh'     },
+  ];
+
+  /* ── View Switching ───────────────────────────────────────── */
+
+  function switchView(view) {
+    ['sach', 'tacgia', 'thongke'].forEach(v => {
+      const el = document.getElementById(`view-${v}`);
+      if (el) el.style.display = v === view ? '' : 'none';
+    });
+    const views = ['sach', 'tacgia', 'thongke'];
+    document.querySelectorAll('.header-nav-item').forEach((btn, i) => {
+      btn.classList.toggle('active', views[i] === view);
+    });
+    if (view === 'tacgia') renderAuthors();
+    if (view === 'thongke') renderStats();
+  }
+
+  function renderAuthors() {
+    const authorMap = {};
+    state.books.forEach(b => {
+      authorMap[b.author] = (authorMap[b.author] || 0) + 1;
+    });
+    const authors = Object.entries(authorMap).sort((a, b) => b[1] - a[1]);
+    const tbody = document.getElementById('author-tbody');
+    if (!authors.length) {
+      tbody.innerHTML = `<tr><td colspan="3" class="state-cell">
+        <span class="state-icon">📭</span>
+        <div class="state-title">Chưa có tác giả nào</div>
+        <div class="state-desc">Thêm sách để xem danh sách tác giả.</div>
+      </td></tr>`;
+      return;
+    }
+    tbody.innerHTML = authors.map(([author, count], i) => `
+      <tr>
+        <td class="cell-id">${i + 1}</td>
+        <td class="cell-title">${esc(author)}</td>
+        <td><span style="display:inline-flex;align-items:center;padding:3px 12px;background:var(--primary-light);color:var(--primary);border-radius:20px;font-size:12px;font-weight:600">${count} cuốn</span></td>
+      </tr>`).join('');
+  }
+
+  function renderStats() {
+    const total = state.books.length;
+    const authorSet = new Set(state.books.map(b => b.author));
+    document.getElementById('sk-total').textContent = total;
+    document.getElementById('sk-authors').textContent = authorSet.size;
+    if (total > 0) {
+      const authorMap = {};
+      state.books.forEach(b => { authorMap[b.author] = (authorMap[b.author] || 0) + 1; });
+      const [topName, topCount] = Object.entries(authorMap).sort((a, b) => b[1] - a[1])[0];
+      document.getElementById('sk-top-author').textContent = topName;
+      document.getElementById('sk-top-label').textContent = `Nhiều sách nhất (${topCount} cuốn)`;
+    } else {
+      document.getElementById('sk-top-author').textContent = '—';
+    }
+  }
+
+  /* ── Init ─────────────────────────────────────────────────── */
+
+  if (new URLSearchParams(location.search).get('demo') === '1') {
+    state.books = DEMO_BOOKS;
+    applySearch('');
+  } else {
+    fetchBooks();
+  }
+</script>
+</body>
+</html>
